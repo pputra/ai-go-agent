@@ -21,9 +21,19 @@ public class Go {
     private Go deepCopyGameState(Go go) {
         final Go copiedGo = new Go();
 
-        copiedGo.setBoards(go.currBoard.clone(), go.prevBoard.clone());
+        copiedGo.setBoards(deepCopyBoard(go.currBoard), deepCopyBoard(go.prevBoard));
 
         return copiedGo;
+    }
+
+    private int[][] deepCopyBoard(int[][] board) {
+        int[][] copyBoard = new int[board.length][board[0].length];
+
+        for (int row = 0; row < board.length; row++) {
+            System.arraycopy(board[row], 0, copyBoard[row], 0, board.length);
+        }
+
+        return copyBoard;
     }
 
     public void setBoards(final int[][] currBoard, final int[][] prevBoard) {
@@ -52,7 +62,7 @@ public class Go {
     }
 
     public boolean isValidCoordinate(final int row, final int col, final my_player.Agent agent) {
-        currBoard = agent.getCurrBoard();
+        currBoard = deepCopyBoard(agent.getCurrBoard());
 
         if (!(row >= 0 && row < currBoard.length)) {
             return false;

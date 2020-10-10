@@ -39,4 +39,31 @@ public class GameIO {
             }
         }
     }
+
+    public static void visualizeBoard(int[][] board) {
+        for (int i = 0; i < GameConfig.BOARD_ROW_SIZE * 2; i++) {
+            System.out.print("-");
+        }
+        System.out.println();
+        for (int row = 0; row < GameConfig.BOARD_ROW_SIZE; row++) {
+            for (int col = 0; col < GameConfig.BOARD_COL_SIZE; col++) {
+                final int currPiece = board[row][col];
+                System.out.print(currPiece);
+//                if (currPiece == PieceTypes.EMPTY) {
+//                    System.out.print(" ");
+//                } else if (currPiece == PieceTypes.BLACK) {
+//                    System.out.print("X");
+//                } else {
+//                    System.out.print("O");
+//                }
+            }
+            System.out.println();
+        }
+
+        for (int i = 0; i < GameConfig.BOARD_ROW_SIZE * 2; i++) {
+            System.out.print("-");
+        }
+
+        System.out.println();
+    }
 }
