@@ -1,5 +1,3 @@
-package putra.payoga.com.company;
-
 import java.io.*;
 import java.util.Scanner;
 

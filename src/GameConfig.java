@@ -1,5 +1,3 @@
-package putra.payoga.com.company;
-
 public class GameConfig {
     private static final String WORK_DIR = "";
     public static final int BOARD_ROW_SIZE = 5;

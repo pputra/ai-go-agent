@@ -1,5 +1,3 @@
-package putra.payoga.com.company;
-
 import java.util.Objects;
 
 public class Coordinate {
