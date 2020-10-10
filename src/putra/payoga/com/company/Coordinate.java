@@ -1,11 +1,13 @@
 package putra.payoga.com.company;
 
+import java.util.Objects;
+
 public class Coordinate {
     private final int col;
     private final int row;
     private int pointType;
 
-    public Coordinate(int col, int row) {
+    public Coordinate(int row, int col) {
         this.col = col;
         this.row = row;
     }
@@ -24,5 +26,22 @@ public class Coordinate {
 
     public void setPointType(int pointType) {
         this.pointType = pointType;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        final Coordinate that = (Coordinate) o;
+        return row == that.row && col == that.col;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(row, col);
+    }
+
+    @Override
+    public String toString() {
+        return row + "," + col;
     }
 }

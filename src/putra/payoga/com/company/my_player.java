@@ -1,19 +1,29 @@
 package putra.payoga.com.company;
 
-import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 
 public class my_player {
     static class Agent {
         private int currPlayerType;
-        private final int[][] prevBoard = new int[GameConfig.BOARD_ROW_SIZE][GameConfig.BOARD_COL_SIZE];
-        private final int[][] currBoard = new int[GameConfig.BOARD_ROW_SIZE][GameConfig.BOARD_COL_SIZE];
+        private final int[][] prevBoard;
+        private final int[][] currBoard;
+        private final Go go;
 
-        public Agent() {
-            int[] currPlayerBuffer = new int[1];
-            GameIO.readInput(currPlayerBuffer, prevBoard, currBoard);
+        public Agent(Go go) {
+            this.go = go;
+            final int[] currPlayerBuffer = new int[1];
+            final int[][] prevBoardBuffer = new int[GameConfig.BOARD_ROW_SIZE][GameConfig.BOARD_COL_SIZE];
+            final int[][] currBoardBuffer = new int[GameConfig.BOARD_ROW_SIZE][GameConfig.BOARD_COL_SIZE];
+
+            GameIO.readInput(currPlayerBuffer, prevBoardBuffer, currBoardBuffer);
             currPlayerType = currPlayerBuffer[0];
-            printCurrState();
+            prevBoard = prevBoardBuffer;
+            currBoard = currBoardBuffer;
+
+            this.go.setBoards(prevBoard, currBoard);
         }
 
         public int getCurrPlayerType() {
@@ -32,6 +42,24 @@ public class my_player {
             this.currPlayerType = currPlayerType;
         }
 
+        private String getNextMove() {
+            final List<Coordinate> possibleMoveList = new ArrayList<>();
+
+            for (int row = 0; row < GameConfig.BOARD_ROW_SIZE; row++) {
+                for (int col = 0; col < GameConfig.BOARD_COL_SIZE; col++) {
+                    if (go.isValidCoordinate(row, col, this)) {
+                        possibleMoveList.add(new Coordinate(row, col));
+                    }
+                }
+            }
+
+            if (possibleMoveList.isEmpty()) {
+                return GameConfig.PASS_MOVE;
+            }
+
+            return possibleMoveList.get(new Random().nextInt(possibleMoveList.size())).toString();
+        }
+
         private void printCurrState() {
             System.out.println(currPlayerType);
             System.out.println(Arrays.deepToString(prevBoard));
@@ -39,6 +67,8 @@ public class my_player {
         }
     }
     public static void main(String[] args) {
-        final Agent agent = new Agent();
+        final Go go = new Go();
+        final Agent agent = new Agent(go);
+        GameIO.writeNextMove(agent.getNextMove());
     }
 }

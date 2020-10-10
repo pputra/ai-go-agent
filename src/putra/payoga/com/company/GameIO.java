@@ -1,15 +1,14 @@
 package putra.payoga.com.company;
 
 import java.io.*;
-import java.util.Arrays;
 import java.util.Scanner;
 
 public class GameIO {
-    public static void writePass() {
+    public static void writeNextMove(String nextMove) {
         try (FileWriter writer = new FileWriter(GameConfig.OUTPUT_FILE_NAME);
              BufferedWriter bw = new BufferedWriter(writer)) {
 
-            bw.write(GameConfig.PASS_MOVE);
+            bw.write(nextMove);
         } catch (IOException e) {
             e.printStackTrace();
         }
