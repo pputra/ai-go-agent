@@ -3,7 +3,7 @@ import java.util.List;
 
 public class my_player {
     static class Agent {
-        private final int currPlayerType;
+        private final int currPieceType;
         private final int[][] prevBoard;
         private final int[][] currBoard;
         private final Go go;
@@ -17,7 +17,7 @@ public class my_player {
             final int[][] currBoardBuffer = new int[GameConfig.BOARD_ROW_SIZE][GameConfig.BOARD_COL_SIZE];
 
             GameIO.readInput(currPlayerBuffer, prevBoardBuffer, currBoardBuffer);
-            currPlayerType = currPlayerBuffer[0];
+            currPieceType = currPlayerBuffer[0];
             prevBoard = prevBoardBuffer;
             currBoard = currBoardBuffer;
 
@@ -37,8 +37,8 @@ public class my_player {
             bestEarlyMovesList.add(new Coordinate(3, 3));
         }
 
-        public int getCurrPlayerType() {
-            return currPlayerType;
+        public int getCurrPieceType() {
+            return currPieceType;
         }
 
         public int[][] getCurrBoard() {
@@ -48,8 +48,6 @@ public class my_player {
         private String getNextMove() {
             final int numPieces = go.getTotalPieces();
 
-            GameState bestState = null;
-
             if (numPieces < BEST_MOVES_USAGE_THRESHOLD) {
                 for (Coordinate coordinate : bestEarlyMovesList) {
                     if (go.isEmpty(coordinate) && go.isValidCoordinate(coordinate, this)) {
@@ -58,12 +56,22 @@ public class my_player {
                 }
             }
 
+            final GameState rootGameState = new GameState(currPieceType, currBoard, prevBoard);
+
+            GameState bestState = null;
+
+            Coordinate bestCoordinate = null;
+
             for (int row = 0; row < GameConfig.BOARD_ROW_SIZE; row++) {
                 for (int col = 0; col < GameConfig.BOARD_COL_SIZE; col++) {
-                    GameState state = go.generateGameState(row, col, this);
+                    final Coordinate coordinate = new Coordinate(row, col);
 
-                    if (state != null && (bestState == null || state.evaluateUtility() > bestState.evaluateUtility())) {
+                    GameState state = go.getNextState(coordinate, rootGameState);
+
+                    if (state != null && (bestCoordinate == null || state.evaluateUtility() > bestState.evaluateUtility())) {
                         bestState = state;
+
+                        bestCoordinate = new Coordinate(row, col);
                     }
                 }
             }
@@ -72,16 +80,14 @@ public class my_player {
                 return GameConfig.PASS_MOVE;
             }
 
-//            System.out.println("my liberty");
-//            GameIO.visualizeBoard(bestState.getBoard());
-//            System.out.println(bestState.getLibertyList().size());
-
-            return bestState.getCoordinate().toString();
+            return bestCoordinate.toString();
         }
     }
     public static void main(String[] args) {
         final Go go = new Go();
+
         final Agent agent = new Agent(go);
+
         GameIO.writeNextMove(agent.getNextMove());
     }
 }

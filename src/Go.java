@@ -41,47 +41,39 @@ public class Go {
         return true;
     }
 
-    public GameState generateGameState(final int row, final int col, final my_player.Agent agent) {
-        currBoard = deepCopyBoard(agent.getCurrBoard());
+    public GameState getNextState(final Coordinate coordinate, final GameState gameState) {
+        final int row = coordinate.getRow();
+        final int col = coordinate.getCol();
+        final int currPieceType = gameState.getPieceType();
+        final int enemiesPieceType = 3 - currPieceType;
+
+        currBoard = deepCopyBoard(gameState.getBoard());
 
         if (!isWithinBoundary(row, col) || currBoard[row][col] != PieceTypes.EMPTY) {
             return null;
         }
-//        System.out.println("before placement");
-//        GameIO.visualizeBoard(currBoard);
+
         final Go testGo = deepCopyGameState(this);
-//        System.out.println("after placement");
-        testGo.currBoard[row][col] = agent.getCurrPlayerType();
 
-//        GameIO.visualizeBoard(testGo.currBoard);
-        final List<Coordinate> deadPiecesCoordinateList = testGo.findDeadPiecesCoordinates(3 - agent.getCurrPlayerType());
+        testGo.currBoard[row][col] = currPieceType;
 
-        if (!testGo.hasLiberty(row, col) && deadPiecesCoordinateList.isEmpty()) {
-            return null;
-        }
-
-        if (compareBoard(prevBoard, testGo.currBoard)) {
-            return null;
-        }
+        final List<Coordinate> deadPiecesCoordinateList = testGo.findDeadPiecesCoordinates(enemiesPieceType);
 
         testGo.removePiecesFromTheBoard(deadPiecesCoordinateList);
 
-//        if (!deadPiecesCoordinateList.isEmpty()) {
-//
-//            System.out.println(deadPiecesCoordinateList);
-//            System.out.println("after removal");
-//            GameIO.visualizeBoard(testGo.currBoard);
-//        }
-
-        if (!deadPiecesCoordinateList.isEmpty()) {
-            testGo.currBoard[row][col] = currBoard[row][col];
+        if (!testGo.hasLiberty(row, col)) {
+            return null;
         }
 
-        final List<Coordinate> libertyList = testGo.getLibertyList(agent.getCurrPlayerType());
+        if (compareBoard(gameState.getPrevBoard(), testGo.currBoard)) {
+            return null;
+        }
 
-        final List<Coordinate> enemiesLibertyList = testGo.getLibertyList(3 - agent.getCurrPlayerType());
+        final List<Coordinate> libertyList = testGo.getLibertyList(gameState.getPieceType());
 
-        return new GameState(new Coordinate(row, col), testGo.currBoard, deadPiecesCoordinateList, libertyList, enemiesLibertyList);
+        final List<Coordinate> enemiesLibertyList = testGo.getLibertyList(enemiesPieceType);
+
+        return new GameState(enemiesPieceType, testGo.currBoard, gameState.getBoard(), deadPiecesCoordinateList, libertyList, enemiesLibertyList);
     }
 
     private boolean isWithinBoundary(final int row, final int col) {
@@ -108,13 +100,13 @@ public class Go {
 
         final Go testGo = deepCopyGameState(this);
 
-        testGo.currBoard[row][col] = agent.getCurrPlayerType();
+        testGo.currBoard[row][col] = agent.getCurrPieceType();
 
         if (testGo.hasLiberty(row, col)) {
             return true;
         }
 
-        testGo.removeDeadPieces(3 - agent.getCurrPlayerType());
+        testGo.removeDeadPieces(3 - agent.getCurrPieceType());
 
         if (!testGo.hasLiberty(row, col)) {
             return false;

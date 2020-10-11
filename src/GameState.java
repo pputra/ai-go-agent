@@ -1,38 +1,41 @@
 import java.util.List;
 
 public class GameState {
-    private Coordinate coordinate;
+    private final int pieceType;
     private final int[][] board;
-    private List<Coordinate> deadEnemiesCoordinateList;
-    private List<Coordinate> libertyList;
-    private List<Coordinate> enemiesLibertyList;
+    private final int[][] prevBoard;
+    private final List<Coordinate> deadEnemiesCoordinateList;
+    private final List<Coordinate> libertyList;
+    private final List<Coordinate> enemiesLibertyList;
 
-    public GameState(Coordinate coordinate, int[][] board, List<Coordinate> deadEnemiesCoordinateList, List<Coordinate> libertyList, List<Coordinate> enemiesLibertyList) {
-        this.coordinate = coordinate;
+    public GameState(int pieceType, int[][] board, int[][] prevBoard, List<Coordinate> deadEnemiesCoordinateList, List<Coordinate> libertyList, List<Coordinate> enemiesLibertyList) {
+        this.pieceType = pieceType;
         this.board = board;
+        this.prevBoard = prevBoard;
         this.deadEnemiesCoordinateList = deadEnemiesCoordinateList;
         this.libertyList = libertyList;
         this.enemiesLibertyList = enemiesLibertyList;
     }
 
-    public Coordinate getCoordinate() {
-        return coordinate;
+    public GameState(int pieceType, int[][] board, int[][] prevBoard) {
+        this.pieceType = pieceType;
+        this.board = board;
+        this.prevBoard = prevBoard;
+        deadEnemiesCoordinateList = null;
+        libertyList = null;
+        enemiesLibertyList = null;
+    }
+
+    public int getPieceType() {
+        return pieceType;
     }
 
     public int[][] getBoard() {
         return board;
     }
 
-    public List<Coordinate> getDeadEnemiesCoordinateList() {
-        return deadEnemiesCoordinateList;
-    }
-
-    public List<Coordinate> getLibertyList() {
-        return libertyList;
-    }
-
-    public List<Coordinate> getEnemiesLibertyList() {
-        return enemiesLibertyList;
+    public int[][] getPrevBoard() {
+        return prevBoard;
     }
 
     public double evaluateUtility() {
