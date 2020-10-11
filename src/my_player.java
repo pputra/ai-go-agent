@@ -1,14 +1,14 @@
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 
 public class my_player {
     static class Agent {
-        private int currPlayerType;
+        private final int currPlayerType;
         private final int[][] prevBoard;
         private final int[][] currBoard;
         private final Go go;
+        private final List<Coordinate> bestEarlyMovesList = new ArrayList<>();
+        private final int BEST_MOVES_USAGE_THRESHOLD = 3;
 
         public Agent(Go go) {
             this.go = go;
@@ -22,46 +22,59 @@ public class my_player {
             currBoard = currBoardBuffer;
 
             this.go.setBoards(prevBoard, currBoard);
+            initBestEarlyMoves();
+        }
+
+        private void initBestEarlyMoves() {
+            bestEarlyMovesList.add(new Coordinate(2, 2));
+//            bestEarlyMovesList.add(new Coordinate(2, 1));
+//            bestEarlyMovesList.add(new Coordinate(2, 3));
+//            bestEarlyMovesList.add(new Coordinate(1, 1));
+//            bestEarlyMovesList.add(new Coordinate(1, 2));
+            bestEarlyMovesList.add(new Coordinate(1, 3));
+//            bestEarlyMovesList.add(new Coordinate(3, 1));
+//            bestEarlyMovesList.add(new Coordinate(3, 2));
+            bestEarlyMovesList.add(new Coordinate(3, 3));
         }
 
         public int getCurrPlayerType() {
             return currPlayerType;
         }
 
-        public int[][] getPrevBoard() {
-            return prevBoard;
-        }
-
         public int[][] getCurrBoard() {
             return currBoard;
         }
 
-        public void setCurrPlayerType(int currPlayerType) {
-            this.currPlayerType = currPlayerType;
-        }
-
         private String getNextMove() {
-            final List<Coordinate> possibleMoveList = new ArrayList<>();
+            final int numPieces = go.getTotalPieces();
 
-            for (int row = 0; row < GameConfig.BOARD_ROW_SIZE; row++) {
-                for (int col = 0; col < GameConfig.BOARD_COL_SIZE; col++) {
-                    if (go.isValidCoordinate(row, col, this)) {
-                        possibleMoveList.add(new Coordinate(row, col));
+            GameState bestState = null;
+
+            if (numPieces < BEST_MOVES_USAGE_THRESHOLD) {
+                for (Coordinate coordinate : bestEarlyMovesList) {
+                    if (go.isEmpty(coordinate) && go.isValidCoordinate(coordinate.getRow(), coordinate.getCol(), this)) {
+                        return coordinate.toString();
                     }
                 }
             }
 
-            if (possibleMoveList.isEmpty()) {
+            for (int row = 0; row < GameConfig.BOARD_ROW_SIZE; row++) {
+                for (int col = 0; col < GameConfig.BOARD_COL_SIZE; col++) {
+                    if (go.isValidCoordinate(row, col, this)) {
+                        GameState state = go.generateGameState(row, col, this);
+
+                        if (bestState == null || state.getDeadEnemiesCoordinateList().size() > bestState.getDeadEnemiesCoordinateList().size()) {
+                            bestState = state;
+                        }
+                    }
+                }
+            }
+
+            if (bestState == null) {
                 return GameConfig.PASS_MOVE;
             }
 
-            return possibleMoveList.get(new Random().nextInt(possibleMoveList.size())).toString();
-        }
-
-        private void printCurrState() {
-            System.out.println(currPlayerType);
-            System.out.println(Arrays.deepToString(prevBoard));
-            System.out.println(Arrays.deepToString(currBoard));
+            return bestState.getCoordinate().toString();
         }
     }
     public static void main(String[] args) {

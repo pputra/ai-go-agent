@@ -61,6 +61,27 @@ public class Go {
         return true;
     }
 
+    public GameState generateGameState(final int row, final int col, final my_player.Agent agent) {
+        currBoard = deepCopyBoard(agent.getCurrBoard());
+//        System.out.println("before placement");
+//        GameIO.visualizeBoard(currBoard);
+        final Go testGo = deepCopyGameState(this);
+//        System.out.println("after placement");
+        testGo.currBoard[row][col] = agent.getCurrPlayerType();
+//        GameIO.visualizeBoard(testGo.currBoard);
+        final List<Coordinate> deadPiecesCoordinateList = testGo.findDeadPiecesCoordinates(3 - agent.getCurrPlayerType());
+        testGo.removePiecesFromTheBoard(deadPiecesCoordinateList);
+
+//        if (!deadPiecesCoordinateList.isEmpty()) {
+//
+//            System.out.println(deadPiecesCoordinateList);
+//            System.out.println("after removal");
+//            GameIO.visualizeBoard(testGo.currBoard);
+//        }
+
+        return new GameState(new Coordinate(row, col), currBoard, deadPiecesCoordinateList);
+    }
+
     public boolean isValidCoordinate(final int row, final int col, final my_player.Agent agent) {
         currBoard = deepCopyBoard(agent.getCurrBoard());
 
@@ -176,14 +197,31 @@ public class Go {
 
 
     private List<Coordinate> removeDeadPieces(final int pieceType) {
-        final List<Coordinate> deadPiecesCoordinateList = findDeadPiecesCoordinates(pieceType);
 
-        return deadPiecesCoordinateList;
+        return findDeadPiecesCoordinates(pieceType);
     }
 
     private void removePiecesFromTheBoard(final List<Coordinate> deadPiecesCoordinateList) {
         for (Coordinate coordinate : deadPiecesCoordinateList) {
             currBoard[coordinate.getRow()][coordinate.getCol()] = PieceTypes.EMPTY;
         }
+    }
+
+    public boolean isEmpty(Coordinate coordinate) {
+        return currBoard[coordinate.getRow()][coordinate.getCol()] == PieceTypes.EMPTY;
+    }
+
+    public int getTotalPieces() {
+        int numPieces = 0;
+
+        for (int row = 0; row < currBoard.length; row++) {
+            for (int col = 0; col < currBoard[0].length; col++) {
+                if (currBoard[row][col] != PieceTypes.EMPTY) {
+                    numPieces++;
+                }
+            }
+        }
+
+        return numPieces;
     }
 }
