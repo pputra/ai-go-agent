@@ -1,6 +1,4 @@
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Go {
@@ -79,7 +77,15 @@ public class Go {
 //            GameIO.visualizeBoard(testGo.currBoard);
 //        }
 
-        return new GameState(new Coordinate(row, col), currBoard, deadPiecesCoordinateList);
+        if (!deadPiecesCoordinateList.isEmpty()) {
+            testGo.currBoard[row][col] = currBoard[row][col];
+        }
+
+        final List<Coordinate> libertyList = testGo.getLibertyList(agent.getCurrPlayerType());
+
+        final List<Coordinate> enemiesLibertyList = testGo.getLibertyList(3 - agent.getCurrPlayerType());
+
+        return new GameState(new Coordinate(row, col), testGo.currBoard, deadPiecesCoordinateList, libertyList, enemiesLibertyList);
     }
 
     public boolean isValidCoordinate(final int row, final int col, final my_player.Agent agent) {
@@ -128,6 +134,26 @@ public class Go {
         }
 
         return false;
+    }
+
+    public List<Coordinate> getLibertyList(int pieceType) {
+        Set<Coordinate> libertySet = new HashSet<>();
+
+        for (int row = 0; row < GameConfig.BOARD_ROW_SIZE; row++) {
+            for (int col = 0; col < GameConfig.BOARD_COL_SIZE; col++) {
+                if (currBoard[row][col] == pieceType) {
+                    List<Coordinate> neighborList = getNeighbors(row, col);
+
+                    for (Coordinate neighbor : neighborList) {
+                        if (currBoard[neighbor.getRow()][neighbor.getCol()] == PieceTypes.EMPTY) {
+                            libertySet.add(neighbor);
+                        }
+                    }
+                }
+            }
+        }
+
+        return new ArrayList<>(libertySet);
     }
 
     private List<Coordinate> findAllyUsingDfs(final int row, final int col) {

@@ -63,7 +63,7 @@ public class my_player {
                     if (go.isValidCoordinate(row, col, this)) {
                         GameState state = go.generateGameState(row, col, this);
 
-                        if (bestState == null || state.getDeadEnemiesCoordinateList().size() > bestState.getDeadEnemiesCoordinateList().size()) {
+                        if (bestState == null || state.evaluateUtility() > bestState.evaluateUtility()) {
                             bestState = state;
                         }
                     }
@@ -73,6 +73,10 @@ public class my_player {
             if (bestState == null) {
                 return GameConfig.PASS_MOVE;
             }
+
+//            System.out.println("my liberty");
+//            GameIO.visualizeBoard(bestState.getBoard());
+//            System.out.println(bestState.getLibertyList().size());
 
             return bestState.getCoordinate().toString();
         }
