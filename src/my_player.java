@@ -52,7 +52,7 @@ public class my_player {
 
             if (numPieces < BEST_MOVES_USAGE_THRESHOLD) {
                 for (Coordinate coordinate : bestEarlyMovesList) {
-                    if (go.isEmpty(coordinate) && go.isValidCoordinate(coordinate.getRow(), coordinate.getCol(), this)) {
+                    if (go.isEmpty(coordinate) && go.isValidCoordinate(coordinate, this)) {
                         return coordinate.toString();
                     }
                 }
@@ -60,12 +60,10 @@ public class my_player {
 
             for (int row = 0; row < GameConfig.BOARD_ROW_SIZE; row++) {
                 for (int col = 0; col < GameConfig.BOARD_COL_SIZE; col++) {
-                    if (go.isValidCoordinate(row, col, this)) {
-                        GameState state = go.generateGameState(row, col, this);
+                    GameState state = go.generateGameState(row, col, this);
 
-                        if (bestState == null || state.evaluateUtility() > bestState.evaluateUtility()) {
-                            bestState = state;
-                        }
+                    if (state != null && (bestState == null || state.evaluateUtility() > bestState.evaluateUtility())) {
+                        bestState = state;
                     }
                 }
             }
