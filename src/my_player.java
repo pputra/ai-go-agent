@@ -87,9 +87,11 @@ public class my_player {
 
         private String getNextMinMaxMove() {
             final GameState rootGameState = new GameState(currPieceType, currBoard, prevBoard);
+
             int depth = 3;
 
             Coordinate bestCoordinate = null;
+
             double maxValue = -1 * Double.MAX_VALUE;
 
             if (numPieces > 10) {
@@ -99,6 +101,10 @@ public class my_player {
             if (numPieces > 15) {
                 depth = 7;
             }
+
+            final double ALPHA = -1 * Double.MAX_VALUE;
+
+            final double BETA = Double.MAX_VALUE;
 
             for (int row = 0; row < GameConfig.BOARD_ROW_SIZE; row++) {
                 for (int col = 0; col < GameConfig.BOARD_COL_SIZE; col++) {
@@ -110,7 +116,7 @@ public class my_player {
                         continue;
                     }
 
-                    final double currValue = minValue(depth, nextState);
+                    final double currValue = minValue(depth, nextState, ALPHA, BETA);
 
                     if (currValue > maxValue) {
                         bestCoordinate = coordinate;
@@ -126,7 +132,7 @@ public class my_player {
             return bestCoordinate.toString();
         }
 
-        private double maxValue(final int depth, final GameState gameState) {
+        private double maxValue(final int depth, final GameState gameState, double alpha, final double beta) {
             if (depth == 0) {
                 return gameState.evaluateUtility(numPieces);
             }
@@ -140,15 +146,21 @@ public class my_player {
                     final GameState nextState = go.getNextState(coordinate, gameState);
 
                     if (nextState != null) {
-                        value = Math.max(value, minValue(depth - 1, nextState));
+                        value = Math.max(value, minValue(depth - 1, nextState, alpha, beta));
                     }
+
+                    if (value >= beta) {
+                        return value;
+                    }
+
+                    alpha = Math.max(alpha, value);
                 }
             }
 
             return value;
         }
 
-        private double minValue(int depth, GameState gameState) {
+        private double minValue(final int depth, final GameState gameState, final double alpha, double beta) {
             if (depth == 0) {
                 return gameState.evaluateUtility(numPieces);
             }
@@ -162,8 +174,14 @@ public class my_player {
                     final GameState nextState = go.getNextState(coordinate, gameState);
 
                     if (nextState != null) {
-                        value = Math.min(value, maxValue(depth - 1, nextState));
+                        value = Math.min(value, maxValue(depth - 1, nextState, alpha, beta));
                     }
+
+                    if (value <= alpha) {
+                        return value;
+                    }
+
+                    beta = Math.max(beta, value);
                 }
             }
 
