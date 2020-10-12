@@ -1,5 +1,7 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class my_player {
     static class Agent {
@@ -9,6 +11,7 @@ public class my_player {
         private final Go go;
         private final List<Coordinate> bestEarlyMovesList = new ArrayList<>();
         private final int BEST_MOVES_USAGE_THRESHOLD = 3;
+        final int numPieces;
 
         public Agent(Go go) {
             this.go = go;
@@ -22,6 +25,7 @@ public class my_player {
             currBoard = currBoardBuffer;
 
             this.go.setBoards(prevBoard, currBoard);
+            numPieces = go.getTotalPieces();
             initBestEarlyMoves();
         }
 
@@ -45,9 +49,7 @@ public class my_player {
             return currBoard;
         }
 
-        private String getNextMove() {
-            final int numPieces = go.getTotalPieces();
-
+        private String getNextGreedyMove() {
             if (numPieces < BEST_MOVES_USAGE_THRESHOLD) {
                 for (Coordinate coordinate : bestEarlyMovesList) {
                     if (go.isEmpty(coordinate) && go.isValidCoordinate(coordinate, this)) {
@@ -68,7 +70,7 @@ public class my_player {
 
                     GameState state = go.getNextState(coordinate, rootGameState);
 
-                    if (state != null && (bestCoordinate == null || state.evaluateUtility() > bestState.evaluateUtility())) {
+                    if (state != null && (bestCoordinate == null || state.evaluateUtility(numPieces) > bestState.evaluateUtility(numPieces))) {
                         bestState = state;
 
                         bestCoordinate = new Coordinate(row, col);
@@ -82,12 +84,98 @@ public class my_player {
 
             return bestCoordinate.toString();
         }
+
+        private String getNextMinMaxMove() {
+            final GameState rootGameState = new GameState(currPieceType, currBoard, prevBoard);
+            int depth = 3;
+
+            Coordinate bestCoordinate = null;
+            double maxValue = -1 * Double.MAX_VALUE;
+
+            if (numPieces > 10) {
+                depth = 5;
+            }
+
+            if (numPieces > 15) {
+                depth = 7;
+            }
+
+            for (int row = 0; row < GameConfig.BOARD_ROW_SIZE; row++) {
+                for (int col = 0; col < GameConfig.BOARD_COL_SIZE; col++) {
+                    final Coordinate coordinate = new Coordinate(row, col);
+
+                    final GameState nextState = go.getNextState(coordinate, rootGameState);
+
+                    if (nextState == null) {
+                        continue;
+                    }
+
+                    final double currValue = minValue(depth, nextState);
+
+                    if (currValue > maxValue) {
+                        bestCoordinate = coordinate;
+                        maxValue = currValue;
+                    }
+                }
+            }
+
+            if (bestCoordinate == null) {
+                return GameConfig.PASS_MOVE;
+            }
+
+            return bestCoordinate.toString();
+        }
+
+        private double maxValue(final int depth, final GameState gameState) {
+            if (depth == 0) {
+                return gameState.evaluateUtility(numPieces);
+            }
+
+            double value = -1 * Double.MAX_VALUE;
+
+            for (int row = 0; row < GameConfig.BOARD_ROW_SIZE; row++) {
+                for (int col = 0; col < GameConfig.BOARD_COL_SIZE; col++) {
+                    final Coordinate coordinate = new Coordinate(row, col);
+
+                    final GameState nextState = go.getNextState(coordinate, gameState);
+
+                    if (nextState != null) {
+                        value = Math.max(value, minValue(depth - 1, nextState));
+                    }
+                }
+            }
+
+            return value;
+        }
+
+        private double minValue(int depth, GameState gameState) {
+            if (depth == 0) {
+                return gameState.evaluateUtility(numPieces);
+            }
+
+            double value = Double.MAX_VALUE;
+
+            for (int row = 0; row < GameConfig.BOARD_ROW_SIZE; row++) {
+                for (int col = 0; col < GameConfig.BOARD_COL_SIZE; col++) {
+                    final Coordinate coordinate = new Coordinate(row, col);
+
+                    final GameState nextState = go.getNextState(coordinate, gameState);
+
+                    if (nextState != null) {
+                        value = Math.min(value, maxValue(depth - 1, nextState));
+                    }
+                }
+            }
+
+            return value;
+        }
     }
+
     public static void main(String[] args) {
         final Go go = new Go();
 
         final Agent agent = new Agent(go);
 
-        GameIO.writeNextMove(agent.getNextMove());
+        GameIO.writeNextMove(agent.getNextMinMaxMove());
     }
 }

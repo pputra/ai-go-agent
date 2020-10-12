@@ -38,7 +38,24 @@ public class GameState {
         return prevBoard;
     }
 
-    public double evaluateUtility() {
-        return deadEnemiesCoordinateList.size() + 0.4 * libertyList.size() - 0.6 * enemiesLibertyList.size();
+    public double evaluateUtility(final int numPieces) {
+        if (numPieces < 10) {
+            return deadEnemiesCoordinateList.size() + 0.4 * libertyList.size() - 0.6 * enemiesLibertyList.size();
+        }
+
+        int allyCount = 0;
+        int enemiesCount = 0;
+
+        for (int[] ints : board) {
+            for (int j = 0; j < board.length; j++) {
+                if (ints[j] == pieceType) {
+                    allyCount++;
+                } else if (ints[j] == (3 - pieceType)) {
+                    enemiesCount++;
+                }
+            }
+        }
+
+        return allyCount - enemiesCount + 0.4 * libertyList.size() - 0.6 * enemiesLibertyList.size();
     }
 }
