@@ -69,11 +69,7 @@ public class Go {
             return null;
         }
 
-        final List<Coordinate> libertyList = testGo.getLibertyList(gameState.getPieceType());
-
-        final List<Coordinate> enemiesLibertyList = testGo.getLibertyList(enemiesPieceType);
-
-        return new GameState(enemiesPieceType, testGo.currBoard, gameState.getBoard(), deadPiecesCoordinateList, libertyList, enemiesLibertyList);
+        return new GameState(enemiesPieceType, testGo.currBoard, gameState.getBoard(), deadPiecesCoordinateList);
     }
 
     private boolean isWithinBoundary(final int row, final int col) {
@@ -180,7 +176,7 @@ public class Go {
                 .collect(Collectors.toList());
     }
 
-    private List<Coordinate> getNeighbors(final int row, final int col) {
+    public List<Coordinate> getNeighbors(final int row, final int col) {
         final List<Coordinate> neighborsList = new ArrayList<>();
 
         if (row > 0) {
@@ -226,10 +222,6 @@ public class Go {
         for (Coordinate coordinate : deadPiecesCoordinateList) {
             currBoard[coordinate.getRow()][coordinate.getCol()] = PieceTypes.EMPTY;
         }
-    }
-
-    public boolean isEmpty(Coordinate coordinate) {
-        return currBoard[coordinate.getRow()][coordinate.getCol()] == PieceTypes.EMPTY;
     }
 
     public int getTotalPieces() {
