@@ -44,8 +44,8 @@ public class Go {
     public GameState getNextState(final Coordinate coordinate, final GameState gameState) {
         final int row = coordinate.getRow();
         final int col = coordinate.getCol();
-        final int currPieceType = gameState.getPieceType();
-        final int enemiesPieceType = 3 - currPieceType;
+        final int currPieceType = 3 - gameState.getPieceType();
+        final int enemiesPieceType = gameState.getPieceType();
 
         currBoard = deepCopyBoard(gameState.getBoard());
 
@@ -69,7 +69,7 @@ public class Go {
             return null;
         }
 
-        return new GameState(enemiesPieceType, testGo.currBoard, gameState.getBoard(), deadPiecesCoordinateList);
+        return new GameState(currPieceType, testGo.currBoard, gameState.getBoard(), deadPiecesCoordinateList);
     }
 
     private boolean isWithinBoundary(final int row, final int col) {
@@ -152,7 +152,6 @@ public class Go {
         final Stack<Coordinate> stack = new Stack<>();
         stack.push(new Coordinate(row, col));
 
-        // TODO: OPTIMIZE THIS USING SET
         while (!stack.empty()) {
             final Coordinate coordinate = stack.pop();
             allyMemberList.add(coordinate);

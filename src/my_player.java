@@ -1,3 +1,5 @@
+import java.util.*;
+
 public class my_player {
     static class Agent {
         private final int currPieceType;
@@ -5,20 +7,22 @@ public class my_player {
         private final int[][] currBoard;
         private final Go go;
         final int numPieces;
+        final int numSteps;
+        private int maxDepth;
 
         public Agent(Go go) {
             this.go = go;
             final int[] currPlayerBuffer = new int[1];
             final int[][] prevBoardBuffer = new int[GameConfig.BOARD_ROW_SIZE][GameConfig.BOARD_COL_SIZE];
             final int[][] currBoardBuffer = new int[GameConfig.BOARD_ROW_SIZE][GameConfig.BOARD_COL_SIZE];
-
             GameIO.readInput(currPlayerBuffer, prevBoardBuffer, currBoardBuffer);
             currPieceType = currPlayerBuffer[0];
             prevBoard = prevBoardBuffer;
             currBoard = currBoardBuffer;
-
             this.go.setBoards(prevBoard, currBoard);
             numPieces = go.getTotalPieces();
+            numSteps = GameIO.readNumSteps(numPieces, currPieceType);
+            initDepth();
         }
 
         public int getCurrPieceType() {
@@ -29,22 +33,58 @@ public class my_player {
             return currBoard;
         }
 
-        private String getNextMinMaxMove() {
-            final GameState rootGameState = new GameState(currPieceType, currBoard, prevBoard);
+        private List<Coordinate> getEmptyCenterCoordinates() {
+            final List<Coordinate> emptyCenterList = new ArrayList<>();
 
-            int depth = 3;
+            for (int row = 1; row < GameConfig.BOARD_ROW_SIZE - 1; row++) {
+                for (int col = 1; col < GameConfig.BOARD_COL_SIZE - 1; col++) {
+                    if (currBoard[row][col] == PieceTypes.EMPTY) {
+                        emptyCenterList.add(new Coordinate(row, col));
+                    }
+                }
+            }
+
+            return emptyCenterList;
+        }
+
+        private void setDepth(int depth) {
+            this.maxDepth = Math.min(depth, GameConfig.TOTAL_NUM_STEPS - numSteps);
+        }
+
+        private void initDepth() {
+            setDepth(3);
+
+            if (numSteps > 5) {
+                setDepth(4);
+            }
+
+            if (numSteps > 16) {
+                setDepth(5);
+            }
+        }
+
+        private String getNextMinMaxMove() {
+//            System.out.println("step: " + numSteps);
+//            System.out.println("depth: " + maxDepth);
+            final GameState prevGameState = new GameState( 3 - currPieceType, currBoard, prevBoard);
+
+            if (numSteps < 10) {
+                final List<Coordinate> emptyCenterList = getEmptyCenterCoordinates();
+
+                Collections.shuffle(emptyCenterList);
+
+                for (Coordinate coordinate : emptyCenterList) {
+                    final GameState nextGameState = go.getNextState(coordinate, prevGameState);
+
+                    if (nextGameState != null) {
+                        return coordinate.toString();
+                    }
+                }
+            }
 
             Coordinate bestCoordinate = null;
 
             double maxValue = -1 * Double.MAX_VALUE;
-
-//            if (numPieces > 10) {
-//                depth = 4;
-//            }
-
-            if (numPieces > 15) {
-                depth = 5;
-            }
 
             final double ALPHA = -1 * Double.MAX_VALUE;
 
@@ -54,13 +94,13 @@ public class my_player {
                 for (int col = 0; col < GameConfig.BOARD_COL_SIZE; col++) {
                     final Coordinate coordinate = new Coordinate(row, col);
 
-                    final GameState nextState = go.getNextState(coordinate, rootGameState);
+                    final GameState nextState = go.getNextState(coordinate, prevGameState);
 
                     if (nextState == null) {
                         continue;
                     }
 
-                    final double currValue = minValue(depth, nextState, ALPHA, BETA);
+                    final double currValue = minValue(0, nextState, ALPHA, BETA);
 
                     if (currValue > maxValue) {
                         bestCoordinate = coordinate;
@@ -77,8 +117,8 @@ public class my_player {
         }
 
         private double maxValue(final int depth, final GameState gameState, double alpha, final double beta) {
-            if (depth == 0) {
-                return gameState.evaluateUtility(numPieces);
+            if (depth == this.maxDepth) {
+                return gameState.evaluateUtility(numSteps + depth, currPieceType);
             }
 
             double value = -1 * Double.MAX_VALUE;
@@ -90,7 +130,7 @@ public class my_player {
                     final GameState nextState = go.getNextState(coordinate, gameState);
 
                     if (nextState != null) {
-                        value = Math.max(value, minValue(depth - 1, nextState, alpha, beta));
+                        value = Math.max(value, minValue(depth + 1, nextState, alpha, beta));
                     }
 
                     if (value >= beta) {
@@ -105,8 +145,8 @@ public class my_player {
         }
 
         private double minValue(final int depth, final GameState gameState, final double alpha, double beta) {
-            if (depth == 0) {
-                return gameState.evaluateUtility(numPieces);
+            if (depth == this.maxDepth) {
+                return gameState.evaluateUtility(numSteps + depth, currPieceType);
             }
 
             double value = Double.MAX_VALUE;
@@ -118,7 +158,7 @@ public class my_player {
                     final GameState nextState = go.getNextState(coordinate, gameState);
 
                     if (nextState != null) {
-                        value = Math.min(value, maxValue(depth - 1, nextState, alpha, beta));
+                        value = Math.min(value, maxValue(depth + 1, nextState, alpha, beta));
                     }
 
                     if (value <= alpha) {

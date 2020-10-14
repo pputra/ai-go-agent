@@ -49,13 +49,6 @@ public class GameIO {
             for (int col = 0; col < GameConfig.BOARD_COL_SIZE; col++) {
                 final int currPiece = board[row][col];
                 System.out.print(currPiece);
-//                if (currPiece == PieceTypes.EMPTY) {
-//                    System.out.print(" ");
-//                } else if (currPiece == PieceTypes.BLACK) {
-//                    System.out.print("X");
-//                } else {
-//                    System.out.print("O");
-//                }
             }
             System.out.println();
         }
@@ -65,5 +58,41 @@ public class GameIO {
         }
 
         System.out.println();
+    }
+
+    private static void writeNumStep(String numStep) {
+        try (FileWriter writer = new FileWriter(GameConfig.NUM_STEP_FILE_NAME);
+             BufferedWriter bw = new BufferedWriter(writer)) {
+
+            bw.write(numStep);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static int readNumSteps(int numPieces, int pieceType) {
+        if (numPieces == 0) {
+            final int currNumStep =  pieceType == PieceTypes.BLACK ? 1 : 2;
+
+            writeNumStep(Integer.toString(currNumStep + 2));
+
+            return currNumStep;
+        }
+
+        try {
+            FileInputStream f = new FileInputStream(GameConfig.NUM_STEP_FILE_NAME);
+
+            Scanner scanner = new Scanner(f);
+
+            final int currNumStep =  Integer.parseInt(scanner.nextLine());
+
+            writeNumStep(Integer.toString(currNumStep + 2));
+
+            return currNumStep;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+
+            return -1;
+        }
     }
 }

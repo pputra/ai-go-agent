@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,18 +39,22 @@ public class GameState {
         return prevBoard;
     }
 
-    public double evaluateUtility(final int numPieces) {
-        final double piecesCountDiff = getPiecesCountDiff();
+    public double evaluateUtility(final int numSteps, final int currPieceType) {
+        final int piecesCountDiff = getPiecesCountDiff(currPieceType);
 
-        final int eyesCountDiff = getEyesCountDiff();
+        if (numSteps == GameConfig.TOTAL_NUM_STEPS) {
+            return addKomi(piecesCountDiff, pieceType);
+        }
+
+        final int eyesCountDiff = getEyesCountDiff(pieceType);
 
         initAllLibertyList();
 
-        if (numPieces < 10) {
-            return eyesCountDiff + libertyList.size() - enemiesLibertyList.size();
-        }
+        return eyesCountDiff * 2 + libertyList.size() - enemiesLibertyList.size() + addKomi(piecesCountDiff, pieceType);
+    }
 
-        return eyesCountDiff  + piecesCountDiff + 0.4 * libertyList.size() - 0.6 * enemiesLibertyList.size();
+    private double addKomi(final int piecesCountDiff, final int pieceType) {
+        return pieceType == PieceTypes.WHITE ? piecesCountDiff + GameConfig.KOMI : piecesCountDiff - GameConfig.KOMI;
     }
 
     private void initAllLibertyList() {
@@ -62,7 +67,7 @@ public class GameState {
         enemiesLibertyList = testGo.getLibertyList(3 - pieceType);
     }
 
-    private double getPiecesCountDiff() {
+    private int getPiecesCountDiff(final int pieceType) {
         int allyCount = 0;
         int enemiesCount = 0;
 
@@ -76,16 +81,10 @@ public class GameState {
             }
         }
 
-        if (pieceType == PieceTypes.WHITE) {
-            allyCount += GameConfig.KOMI;
-        } else {
-            enemiesCount += GameConfig.KOMI;
-        }
-
         return allyCount - enemiesCount;
     }
 
-    private int getEyesCountDiff() {
+    private int getEyesCountDiff(final int pieceType) {
         int allyCount = 0;
         int enemiesCount = 0;
 
@@ -95,7 +94,7 @@ public class GameState {
 
         for (int row = 0; row < board.length; row++) {
             for (int col = 0; col < board[0].length; col++) {
-                if (pieceType == PieceTypes.EMPTY) {
+                if (board[row][col] == PieceTypes.EMPTY) {
                     final List<Coordinate> emptyNeighborsList = testGo.getNeighbors(row, col);
 
                     Set<Integer> neighborSet = new HashSet<>();
@@ -116,5 +115,21 @@ public class GameState {
         }
 
         return allyCount - enemiesCount;
+    }
+
+    public boolean isRemovingEye(Coordinate coordinate) {
+        final Go testGo = new Go();
+
+        testGo.setBoards(board, prevBoard);
+
+        final List<Coordinate> neighborList = testGo.getNeighbors(coordinate.getRow(), coordinate.getCol());
+
+        final Set<Integer> neighborSet = new HashSet<>();
+
+        for (Coordinate neighbor : neighborList) {
+            neighborSet.add(board[neighbor.getRow()][neighbor.getCol()]);
+        }
+
+        return neighborSet.size() == 1 && neighborSet.contains(pieceType);
     }
 }
