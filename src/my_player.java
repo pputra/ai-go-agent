@@ -7,7 +7,7 @@ public class my_player {
         private final int[][] currBoard;
         private final Go go;
         final int numPieces;
-        final int numSteps;
+        int numSteps;
         private int maxDepth;
 
         public Agent(Go go) {
@@ -33,7 +33,7 @@ public class my_player {
             return currBoard;
         }
 
-        private List<Coordinate> getEmptyCenterCoordinates() {
+        private List<Coordinate> getEmptyCenterCoordinatesList() {
             final List<Coordinate> emptyCenterList = new ArrayList<>();
 
             for (int row = 1; row < GameConfig.BOARD_ROW_SIZE - 1; row++) {
@@ -52,6 +52,14 @@ public class my_player {
         }
 
         private void initDepth() {
+            // all in for black last step
+            if (numSteps == 23 && currPieceType == PieceTypes.BLACK) {
+                setDepth(0);
+                numSteps = 24;
+
+                return;
+            }
+
             setDepth(3);
 
             if (numSteps > 5) {
@@ -63,13 +71,9 @@ public class my_player {
             }
         }
 
-        private String getNextMinMaxMove() {
-//            System.out.println("step: " + numSteps);
-//            System.out.println("depth: " + maxDepth);
-            final GameState prevGameState = new GameState( 3 - currPieceType, currBoard, prevBoard);
-
+        private Coordinate getEmptyCenterCoordinate(GameState prevGameState) {
             if (numSteps < 10) {
-                final List<Coordinate> emptyCenterList = getEmptyCenterCoordinates();
+                final List<Coordinate> emptyCenterList = getEmptyCenterCoordinatesList();
 
                 Collections.shuffle(emptyCenterList);
 
@@ -77,9 +81,23 @@ public class my_player {
                     final GameState nextGameState = go.getNextState(coordinate, prevGameState);
 
                     if (nextGameState != null) {
-                        return coordinate.toString();
+                        return coordinate;
                     }
                 }
+            }
+
+            return null;
+        }
+
+        private String getNextMinMaxMove() {
+//            System.out.println("step: " + numSteps);
+//            System.out.println("depth: " + maxDepth);
+            final GameState prevGameState = new GameState( 3 - currPieceType, currBoard, prevBoard);
+
+            final Coordinate emptyCenterCoordinate = getEmptyCenterCoordinate(prevGameState);
+
+            if (emptyCenterCoordinate != null) {
+                return emptyCenterCoordinate.toString();
             }
 
             Coordinate bestCoordinate = null;

@@ -43,21 +43,21 @@ public class GameState {
         final int piecesCountDiff = getPiecesCountDiff(currPieceType);
 
         if (numSteps == GameConfig.TOTAL_NUM_STEPS) {
-            return addKomi(piecesCountDiff, pieceType);
+            return addKomi(piecesCountDiff, currPieceType);
         }
 
-        final int eyesCountDiff = getEyesCountDiff(pieceType);
+        final int eyesCountDiff = getEyesCountDiff(currPieceType);
 
-        initAllLibertyList();
+        initAllLibertyList(currPieceType);
 
-        return eyesCountDiff * 2 + libertyList.size() - enemiesLibertyList.size() + addKomi(piecesCountDiff, pieceType);
+        return eyesCountDiff * 2 + libertyList.size() - enemiesLibertyList.size() + addKomi(piecesCountDiff, currPieceType);
     }
 
     private double addKomi(final int piecesCountDiff, final int pieceType) {
         return pieceType == PieceTypes.WHITE ? piecesCountDiff + GameConfig.KOMI : piecesCountDiff - GameConfig.KOMI;
     }
 
-    private void initAllLibertyList() {
+    private void initAllLibertyList(final int pieceType) {
         final Go testGo = new Go();
 
         testGo.setBoards(this.board, prevBoard);
@@ -117,7 +117,7 @@ public class GameState {
         return allyCount - enemiesCount;
     }
 
-    public boolean isRemovingEye(Coordinate coordinate) {
+    public boolean isRemovingEye(final Coordinate coordinate, final int pieceType) {
         final Go testGo = new Go();
 
         testGo.setBoards(board, prevBoard);
