@@ -48,18 +48,10 @@ public class my_player {
         }
 
         private void setDepth(int depth) {
-            this.maxDepth = Math.min(depth, GameConfig.TOTAL_NUM_STEPS - numSteps);
+            this.maxDepth = Math.min(depth, GameConfig.getTotalNumSteps(currPieceType) - numSteps);
         }
 
         private void initDepth() {
-            // all in for black last step
-            if (numSteps == 23 && currPieceType == PieceTypes.BLACK) {
-                setDepth(0);
-                numSteps = 24;
-
-                return;
-            }
-
             setDepth(3);
 
             if (numSteps > 5) {
@@ -72,7 +64,7 @@ public class my_player {
         }
 
         private Coordinate getEmptyCenterCoordinate(GameState prevGameState) {
-            if (numSteps < 10) {
+            if (numSteps < 8) {
                 final List<Coordinate> emptyCenterList = getEmptyCenterCoordinatesList();
 
                 Collections.shuffle(emptyCenterList);

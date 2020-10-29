@@ -1,4 +1,3 @@
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -42,7 +41,7 @@ public class GameState {
     public double evaluateUtility(final int numSteps, final int currPieceType) {
         final int piecesCountDiff = getPiecesCountDiff(currPieceType);
 
-        if (numSteps == GameConfig.TOTAL_NUM_STEPS) {
+        if (numSteps == GameConfig.getTotalNumSteps(currPieceType)) {
             return addKomi(piecesCountDiff, currPieceType);
         }
 
